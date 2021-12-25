@@ -1,6 +1,4 @@
 import numpy as np
-import pandas as pd
-import datetime as dt
 from scipy import stats as st
 
 ## https://www.fixes.pub/program/670069.html?utm_source=pocket_mylist
