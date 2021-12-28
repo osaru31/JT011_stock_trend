@@ -3,15 +3,18 @@ from pandas.tseries.offsets import Day
 from yahoo_finance_api2 import share
 from yahoo_finance_api2.exceptions import YahooFinanceError
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import tableFunction as tf
 
 
 class histroical_data:
-    def __init__(self, code, span_in_year):
+    def __init__(self, code, span_in_year, addCalcColumnBoolean, dailyFixedBoolean):
         self.code = str(code)
+        self.dailyValueType = dailyFixedBoolean
         self.df = pd.DataFrame(self.get_data_from_yahoo(span_in_year))
         self.add_date_and_time_to_df()
+        if addCalcColumnBoolean == True : self.add_calculated_columns()
 
     def get_data_from_yahoo(self, span_in_year):
         my_share = share.Share(self.code)
@@ -29,6 +32,8 @@ class histroical_data:
     
     def add_calculated_columns(self):
         self.add_calculated_value_to_df()
+        if self.dailyValueType == False:
+            self.add_calculated_daily_value_to_df()
 
     def add_date_and_time_to_df(self):
         self.df["timestamp"] = pd.to_datetime(self.df["timestamp"], unit="ms")
@@ -56,6 +61,10 @@ class histroical_data:
         self.df["yearlystdev"]= self.df["close"].rolling(365).std()
         self.df["yearlyslope"]= self.df["close"].rolling(365, min_periods=180).apply(tf.get_slope_adjusted, raw=False)
 
+    def add_calculated_daily_value_to_df(self):
+        self.df["dailyRangeOpenClose"] = self.df["close"]-self.df["open"]
+        self.df["dailyRangeHighLow"] = (self.df["high"]-self.df["low"])*np.sign(self.df["dailyRangeOpenClose"])
+
     def plot_df(self):
         self.df.plot(x="datetime", y="close", alpha=0.5)
         plt.show()
@@ -64,12 +73,10 @@ class histroical_data:
         print(self.code)
         print(self.df)
 
-skew = histroical_data('^VIX', 2)
+skew = histroical_data('^VIX', 20, True, False)
 skew.plot_df()
-skew.add_calculated_columns()
-skew.print_df()
 skew.df.to_csv('df.csv')
-skew.df.plot.scatter(x="datetime", y="yearlyslope", alpha=0.3)
+skew.df.plot.scatter(x="datetime", y="dailyRangeHighLow", alpha=0.3)
 plt.show()
 
 ## test
