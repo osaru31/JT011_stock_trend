@@ -12,7 +12,7 @@ class histroical_data:
         self.code = str(code)
         self.df = pd.DataFrame(self.get_data_from_yahoo(span_in_year))
         self.add_date_and_time_to_df()
-        
+
     def get_data_from_yahoo(self, span_in_year):
         my_share = share.Share(self.code)
         symbol_data = None
@@ -31,7 +31,8 @@ class histroical_data:
         self.add_calculated_value_to_df()
 
     def add_date_and_time_to_df(self):
-        self.df["datetime"] = pd.to_datetime(self.df.timestamp, unit="ms")
+        self.df["timestamp"] = pd.to_datetime(self.df["timestamp"], unit="ms")
+        self.df = self.df.rename(columns={'timestamp': 'datetime'})
         self.df["date"] = self.df["datetime"].dt.date
         self.df["previous_date"] = (self.df["datetime"] - Day(1)).dt.date
 
